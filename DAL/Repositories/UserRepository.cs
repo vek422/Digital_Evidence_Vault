@@ -1,31 +1,31 @@
 using System.Data;
-using System.Xml;
-using MySqlConnector;
+using Microsoft.Data.Sqlite;
 
-public class UserRepository()
+public class UserRepository
 {
-
     private User MapRowToUser(DataRow data)
     {
         return new User
         (
             Convert.ToInt32(data["id"]),
-            data["username"].ToString(),
-            data["password_hash"].ToString(),
-            data["salt"].ToString(),
+            data["username"].ToString()!,
+            data["password_hash"].ToString()!,
+            data["salt"].ToString()!,
             (UserRole)Convert.ToInt32(data["role"]),
-            data["name"].ToString()
+            data["name"].ToString()!
         );
     }
+
     public User? GetAdminAccount()
     {
-        string SqlQuery = "SELECT * FROM User Where Role = @r LIMIT 1";
+        string sql = "SELECT * FROM User WHERE role = @r LIMIT 1";
 
         var parameters = new[]
         {
-            new MySqlParameter("@r",(int)UserRole.Admin)
+            new SqliteParameter("@r", (int)UserRole.Admin)
         };
-        DataTable data = DatabaseHelper.ExecuteQuery(SqlQuery, parameters);
+
+        DataTable data = DatabaseHelper.ExecuteQuery(sql, parameters);
 
         if (data.Rows.Count == 0)
         {
@@ -37,31 +37,58 @@ public class UserRepository()
     public void CreateUserAccount(User user)
     {
         string sql = @"
-        INSERT INTO User (username, password_hash, salt, role, name) VALUES (@u, @p, @s, @r, @n)";
+            INSERT INTO User (username, password_hash, salt, role, name) 
+            VALUES (@u, @p, @s, @r, @n)";
 
         var parameters = new[]
         {
-            new MySqlParameter("@u", user.Username),
-            new MySqlParameter("@p", user.PasswordHash),
-            new MySqlParameter("@s",user.Salt),
-            new MySqlParameter("@r", user.Role),
-            new MySqlParameter("@n", user.Name)
+            new SqliteParameter("@u", user.Username),
+            new SqliteParameter("@p", user.PasswordHash),
+            new SqliteParameter("@s", user.Salt),
+            new SqliteParameter("@r", (int)user.Role),
+            new SqliteParameter("@n", user.Name)
         };
 
-        DatabaseHelper.ExecuterNonQuery(sql, parameters);
+        DatabaseHelper.ExecuteNonQuery(sql, parameters);
     }
 
     public User? GetByUserName(string username)
     {
-        string sql = @"SELECT * FROM user WHERE username = @u";
+        string sql = "SELECT * FROM User WHERE username = @u";
 
         var parameters = new[]
         {
-            new MySqlParameter("@u",username)
+            new SqliteParameter("@u", username)
         };
+
         DataTable table = DatabaseHelper.ExecuteQuery(sql, parameters);
 
         if (table.Rows.Count == 0) return null;
         return MapRowToUser(table.Rows[0]);
+    }
+
+    public List<User> GetAllUsers()
+    {
+        string sql = "SELECT * FROM User ORDER BY id";
+        DataTable table = DatabaseHelper.ExecuteQuery(sql);
+
+        var users = new List<User>();
+        foreach (DataRow row in table.Rows)
+        {
+            users.Add(MapRowToUser(row));
+        }
+        return users;
+    }
+
+    public bool UsernameExists(string username)
+    {
+        string sql = "SELECT COUNT(*) FROM User WHERE username = @u";
+        var parameters = new[]
+        {
+            new SqliteParameter("@u", username)
+        };
+
+        var result = DatabaseHelper.ExecuteScalar(sql, parameters);
+        return Convert.ToInt32(result) > 0;
     }
 }

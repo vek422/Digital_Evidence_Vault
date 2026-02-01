@@ -1,44 +1,131 @@
-public class MenuRouter()
+public static class MenuRouter
 {
-
     public static void PrintMenu(User user)
     {
-        switch ((UserRole)user.Role)
+        SessionManager.SetUser(user);
+
+        switch (user.Role)
         {
             case UserRole.Admin:
-                {
-                    RunAdminMenu(user);
-                    break;
-                }
+                RunAdminMenu(user);
+                break;
             case UserRole.Auditor:
-                {
-                    RunAuditorMenu(user);
-                    break;
-                }
+                RunAuditorMenu(user);
+                break;
             case UserRole.Custodian:
-                {
-                    RunCustodianMenu(user);
-                    break;
-                }
+                RunCustodianMenu(user);
+                break;
         }
 
+        SessionManager.ClearSession();
     }
 
-    static void RunAuditorMenu(User user)
+    private static void RunAdminMenu(User user)
     {
-        while (true)
+        var adminMenu = new AdminMenu();
+        bool running = true;
+
+        while (running)
         {
+            Console.Clear();
+            ConsoleHelper.PrintLogo();
+            ConsoleHelper.PrintInfo($"Logged in as: {user.Name} (Administrator)");
+
+            string[] options = {
+                "Create New User",
+                "View All Users",
+                "View Audit Logs",
+                "Logout"
+            };
+
+            ConsoleHelper.PrintMenu("Admin Dashboard", options);
+            int choice = ConsoleHelper.GetMenuChoice(options.Length);
+
+            switch (choice)
+            {
+                case 1:
+                    adminMenu.CreateUser();
+                    break;
+                case 2:
+                    adminMenu.ViewAllUsers();
+                    break;
+                case 3:
+                    adminMenu.ViewAuditLogs();
+                    break;
+                case 4:
+                    running = false;
+                    break;
+            }
         }
     }
 
-    static void RunAdminMenu(User user)
+    private static void RunCustodianMenu(User user)
     {
-        while (true)
-        { }
+        var custodianMenu = new CustodianMenu();
+        bool running = true;
+
+        while (running)
+        {
+            Console.Clear();
+            ConsoleHelper.PrintLogo();
+            ConsoleHelper.PrintInfo($"Logged in as: {user.Name} (Custodian)");
+
+            string[] options = {
+                "Upload Evidence",
+                "View My Uploads",
+                "Logout"
+            };
+
+            ConsoleHelper.PrintMenu("Custodian Dashboard", options);
+            int choice = ConsoleHelper.GetMenuChoice(options.Length);
+
+            switch (choice)
+            {
+                case 1:
+                    custodianMenu.UploadEvidence();
+                    break;
+                case 2:
+                    custodianMenu.ViewMyUploads();
+                    break;
+                case 3:
+                    running = false;
+                    break;
+            }
+        }
     }
 
-    static void RunCustodianMenu(User user)
+    private static void RunAuditorMenu(User user)
     {
-        while (true) { }
+        var auditorMenu = new AuditorMenu();
+        bool running = true;
+
+        while (running)
+        {
+            Console.Clear();
+            ConsoleHelper.PrintLogo();
+            ConsoleHelper.PrintInfo($"Logged in as: {user.Name} (Auditor)");
+
+            string[] options = [
+                "Verify Evidence by ID",
+                "List All Evidence",
+                "Logout"
+            ];
+
+            ConsoleHelper.PrintMenu("Auditor Dashboard", options);
+            int choice = ConsoleHelper.GetMenuChoice(options.Length);
+
+            switch (choice)
+            {
+                case 1:
+                    auditorMenu.VerifyEvidence();
+                    break;
+                case 2:
+                    auditorMenu.ListAllEvidence();
+                    break;
+                case 3:
+                    running = false;
+                    break;
+            }
+        }
     }
 }

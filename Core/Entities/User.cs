@@ -1,6 +1,3 @@
-
-using System.Reflection.Metadata.Ecma335;
-
 public class User
 {
     public int ID { get; init; }
@@ -9,6 +6,7 @@ public class User
     public string Salt { get; set; }
     public UserRole Role { get; init; }
     public string Name { get; set; }
+
     public User(int ID, string Username, string PasswordHash, string Salt, UserRole Role, string Name)
     {
         this.Name = Name;
